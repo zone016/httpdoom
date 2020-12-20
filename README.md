@@ -1,6 +1,6 @@
 <p align="center">
 <a href="https://github.com/BizarreNULL/httpdoom/">
-  <img src="./Images/logo.png" width="350" />
+  <img src="./Images/logo.png" width="300" />
 </a>
 </p>
 <h1 align="center">
