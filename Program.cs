@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using System.Linq;
 using System.Drawing;
 using System.Net.Http;
@@ -9,7 +10,7 @@ using System.CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
-using System.Net;
+
 using static System.Console;
 
 using Pastel;
@@ -248,25 +249,30 @@ namespace HttpDoom
                 
                 return message;
             }
-            catch (HttpRequestException)
+            catch (HttpRequestException httpRequestException)
             {
                 if (debug)
-                    Logger.Warning($"Possible mismatch of protocol requesting {target}, " +
-                                   "trying with SSL/TLS without port...");
-
-                var updatedTarget = target.Replace("http://", "https://");
-                if (updatedTarget.Contains(":"))
                 {
-                    var separator = updatedTarget.LastIndexOf(":", StringComparison.Ordinal);
-                    updatedTarget = updatedTarget.Remove(separator, updatedTarget.Length - separator);
+                    var errMessage = httpRequestException.InnerException == null
+                        ? httpRequestException.Message
+                        : httpRequestException.InnerException.Message;
+
+                    Logger.Warning($"Possible mismatch of protocol requesting {target}, " +
+                                   $"trying with SSL/TLS without port: {errMessage}");
                 }
 
-                if (debug) Logger.Warning($"Requesting {updatedTarget} again...");
+                if (target.Contains(":") && target.Count(c => c == ':') == 2)
+                {
+                    var separator = target.LastIndexOf(":", StringComparison.Ordinal);
+                    target = target.Remove(separator, target.Length - separator);
+                }
+
+                if (debug) Logger.Warning($"Requesting {target} again...");
 
                 try
                 {
-                    var message = await Flyover(updatedTarget, httpTimeout);
-                    Logger.Success($"Host {updatedTarget} is alive!");
+                    var message = await Flyover(target, httpTimeout);
+                    Logger.Success($"Host {target} is alive!");
                     Logger.DisplayFlyoverResponseMessage(message);
 
                     return message;
@@ -294,9 +300,8 @@ namespace HttpDoom
         {
             using var clientHandler = new HttpClientHandler
             {
-                UseCookies = false,
-                MaxAutomaticRedirections = 5,
-                AllowAutoRedirect = true,
+                UseCookies = true,
+                AllowAutoRedirect = false,
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
@@ -310,7 +315,9 @@ namespace HttpDoom
                 Timeout = TimeSpan.FromMilliseconds(timeout)
             };
 
-            var request = new HttpRequestMessage(HttpMethod.Get, target)
+            ServicePointManager.ServerCertificateValidationCallback += (_, _, _, _) => true;
+            
+            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(target))
             {
                 Headers =
                 {
@@ -334,6 +341,7 @@ namespace HttpDoom
             return new FlyoverResponseMessage
             {
                 Domain = domain,
+                Requested = response.RequestMessage?.RequestUri?.ToString(),
                 Port = port,
                 Headers = response.Headers,
                 StatusCode = (int)response.StatusCode,

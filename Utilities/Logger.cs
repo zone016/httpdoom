@@ -44,15 +44,7 @@ namespace HttpDoom.Utilities
         {
             Write(" > ".Pastel(Color.MediumAquamarine));
             Write(" ");
-            WriteLine($"Has #{message.Headers.Count()} header(s)");
-            Write(" > ".Pastel(Color.MediumAquamarine));
-            Write(" ");
-            WriteLine($"Status code is {message.StatusCode}");
-            if (string.IsNullOrEmpty(message.Content)) return;
-
-            Write(" > ".Pastel(Color.MediumAquamarine));
-            Write(" ");
-            WriteLine($"Response has a length of #{message.Content.Length} char(s)");
+            WriteLine($"Answered {message.StatusCode} and has #{message.Headers.Count()} header(s)");
         }
     }
 }
