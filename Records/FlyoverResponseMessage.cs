@@ -12,7 +12,7 @@ namespace HttpDoom.Records
         [JsonPropertyName("port")] public int Port { get; set; }
         [JsonPropertyName("content")] public string Content { get; set; }
         [JsonPropertyName("headers")] public HttpResponseHeaders Headers { get; set; }
-        [JsonPropertyName("cookies")] public CookieContainer Cookies { get; set; }
+        [JsonPropertyName("cookies")] public CookieCollection Cookies { get; set; }
         [JsonPropertyName("status_code")] public int StatusCode { get; set; }
     }
 }
