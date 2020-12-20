@@ -64,7 +64,9 @@ Writing session file...Time:
 
 ## Output
 
-HttpDoom generate a unique file as output: A single `.json`. The content looks like:
+By default, we create all the necessary directories, and we also randomly choose their names (you can set this up with `-o`, in doubt see `--help`).
+
+Within the main directory, a `general.json` file is created containing all the results in a single file (to facilitate the search or ingestion in another visual tool), which looks like this:
 
 ```json
 [
@@ -115,6 +117,16 @@ HttpDoom generate a unique file as output: A single `.json`. The content looks l
 ]
 ```
 
+A directory called *Individual Results* is also created, indexing the results individually, categorically based on the name of the URI used for the request:
+
+```
+/tmp/bjoleu1d.rzq
+├── general.json
+└── Individual Results
+    ├── exception.blog.json
+    └── exception.blog:8080.json
+```
+
 
 
 ## Roadmap
@@ -124,7 +136,7 @@ The project are focused to be a really useful tool.
 - [x] **0x00**: Make the satuday project work;
 - [x] **0x01**: Baking the CLI options very similar to Aquatone;
 - [x] **0x02**: Fix issues with large (5K+) hosts wordlists;
-- [ ] **0x03**: Well, this is not "threads" but work like, maybe need a better polishing;
+- [x] **0x03**: Well, this is not "threads" but work like, maybe need a better polishing;
 - [ ] **0x03**: Create the community-driven fingerprint engine to enumerate vulnerabilities on headers and bodies of the HTTP responses;
 
 
