@@ -44,7 +44,8 @@ namespace HttpDoom.Utilities
         {
             Write(" > ".Pastel(Color.MediumAquamarine));
             Write(" ");
-            WriteLine($"Answered {message.StatusCode} and has #{message.Headers.Count()} header(s)");
+            WriteLine($"Answered {message.StatusCode}, with #{message.Headers.Count()} header(s) " +
+                      $"and #{message.Cookies.Count} cookie(s)");
         }
     }
 }

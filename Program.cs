@@ -298,9 +298,11 @@ namespace HttpDoom
 
         private static async Task<FlyoverResponseMessage> Flyover(string target, int timeout, string proxy = null)
         {
+            var cookies = new CookieContainer();
             using var clientHandler = new HttpClientHandler
             {
                 UseCookies = true,
+                CookieContainer = cookies,
                 AllowAutoRedirect = false,
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
@@ -344,6 +346,7 @@ namespace HttpDoom
                 Requested = response.RequestMessage?.RequestUri?.ToString(),
                 Port = port,
                 Headers = response.Headers,
+                Cookies = cookies,
                 StatusCode = (int)response.StatusCode,
                 Content = await response.Content.ReadAsStringAsync()
             };
