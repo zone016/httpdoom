@@ -4,13 +4,14 @@ using System.Net;
 using System.Linq;
 using System.Drawing;
 using System.Net.Http;
+using System.Threading;
 using System.Text.Json;
 using System.Diagnostics;
 using System.CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
-
+using System.Globalization;
 using static System.Console;
 
 using Pastel;
@@ -25,7 +26,7 @@ namespace HttpDoom
         private static async Task<int> Main(string[] args)
         {
             CursorVisible = false;
-            
+
             #region Application Banner
 
             var (left, top) = GetCursorPosition();
@@ -36,12 +37,12 @@ namespace HttpDoom
             SetCursorPosition(left + 12, top + 3);
             Write("to your horizon.");
             SetCursorPosition(0, top + 5);
-            
-            WriteLine("   v0.1".Pastel("EE977F"));
+
+            WriteLine("   v0.2".Pastel("EE977F"));
             WriteLine();
-            
+
             #endregion
-            
+
             #region Command Line Argument Parsing
 
             var commands = new RootCommand
@@ -53,6 +54,10 @@ namespace HttpDoom
                 new Option<int>(new[] {"--http-timeout", "-t"})
                 {
                     Description = "Timeout in milliseconds for HTTP requests (default is 5000)"
+                },
+                new Option<int>(new[] {"--threads", "-T"})
+                {
+                    Description = $"Number of concurrent threads (default is {Environment.ProcessorCount})"
                 },
                 new Option<string>(new[] {"--output-file", "-o"})
                 {
@@ -75,11 +80,11 @@ namespace HttpDoom
 
             commands.Description = "HttpDoom is a tool for response-based inspection of websites across a large " +
                                    "amount of hosts for quickly gaining an overview of HTTP-based attack surface.";
-            
+
             #endregion
-            
-            commands.Handler = CommandHandler.Create<Options>(async options => await Router(options));            
-            
+
+            commands.Handler = CommandHandler.Create<Options>(async options => await Router(options));
+
             CursorVisible = true;
             return await commands.InvokeAsync(args);
         }
@@ -93,13 +98,13 @@ namespace HttpDoom
             if (string.IsNullOrEmpty(options.OutputFile))
             {
                 options.OutputFile = $"{Guid.NewGuid()}.json";
-                
+
                 if (options.Debug)
                 {
                     Logger.Informational($"Random output file was generated {options.OutputFile}");
                 }
             }
-            
+
             if (File.Exists(options.OutputFile))
             {
                 Logger.Error($"Output file {options.OutputFile} already exist!");
@@ -134,15 +139,24 @@ namespace HttpDoom
                 if (!options.Proxy.Contains(":"))
                 {
                     Logger.Error($"{options.Proxy} is a invalid proxy string! (Correct is 127.0.0.1:1234)");
-                    Environment.Exit(-1);   
+                    Environment.Exit(-1);
                 }
 
                 var values = options.Proxy.Split(":");
                 if (values.Length != 2)
                 {
                     Logger.Error($"{options.Proxy} is a invalid proxy string! (Correct is 127.0.0.1:1234)");
-                    Environment.Exit(-1);   
+                    Environment.Exit(-1);
                 }
+            }
+
+            if (options.Threads > Environment.ProcessorCount)
+            {
+                Logger.Warning("You may have issues with a larger thread count than your processor!");
+            }
+            else
+            {
+                Logger.Informational($"Started with #{options.Threads} thread(s)");
             }
 
             #endregion
@@ -166,7 +180,7 @@ namespace HttpDoom
 
                 if (Uri.CheckHostName(target) == UriHostNameType.Unknown)
                 {
-                    if (options.Debug) 
+                    if (options.Debug)
                         Logger.Error($"{target} has an invalid format to be a fully qualified domain!");
                 }
                 else
@@ -206,32 +220,53 @@ namespace HttpDoom
 
             Logger.Informational($"Added ports, the ({"possible".Pastel(Color.MediumAquamarine)}) " +
                                  $"total of requests is #{targets.Count}");
+            Logger.Warning($"{"Mind the DoS:".Pastel(Color.Red)} This tool can cause instability " +
+                           "problems on your network!");
             Logger.Warning("Initializing CPU-intensive tasks (this can take a while)...");
 
             var stopwatch = Stopwatch.StartNew();
 
-            var tasks = targets
-                .Select(t => Trigger(t, options.Debug, options.HttpTimeout))
-                .ToList();
-            
+            var tasks = new List<Task<FlyoverResponseMessage>>();
+            var throttler = new SemaphoreSlim(options.Threads);
+
+            foreach (var target in targets)
+            {
+                await throttler.WaitAsync();
+                try
+                {
+                    tasks.Add(Task.Run(() => Trigger(target, options.Debug, options.HttpTimeout)));
+                }
+                finally
+                {
+                    throttler.Release();
+                }
+            }
+
             var flyoverResponseMessages = await Task.WhenAll(tasks);
-            
+
             stopwatch.Stop();
-            
-            Logger.Success($"Flyover is done! Enumerated #{flyoverResponseMessages.Length} " +
-                           $"responses in {stopwatch.Elapsed.TotalSeconds} second(s)");
-            
-            Logger.Success($"Total of valid domains is " +
-                           $"#{flyoverResponseMessages.Count(f => f!=null)}");
+
+            var totalMinutes = stopwatch.Elapsed.TotalMinutes.ToString("0.00", CultureInfo.InvariantCulture);
+            Logger.Success($"Flyover is done! Enumerated #{flyoverResponseMessages.Length} responses in " +
+                           $"{totalMinutes} minute(s)");
+
+            #endregion
+
+            #region flyoverResponseMessages Falidation
+
+            flyoverResponseMessages = flyoverResponseMessages
+                .Where(f => f != null)
+                .ToArray();
+
+            Logger.Success($"Got a total of #{flyoverResponseMessages.Length} alive hosts!");
 
             #endregion
 
             #region Result Persistance
-            
+
             Logger.Informational($"Indexing results in {options.OutputFile}");
 
-            flyoverResponseMessages = flyoverResponseMessages.Where(f => f != null).ToArray();
-            await File.WriteAllTextAsync(options.OutputFile, 
+            await File.WriteAllTextAsync(options.OutputFile,
                 JsonSerializer.Serialize(flyoverResponseMessages));
 
             #endregion
@@ -246,7 +281,7 @@ namespace HttpDoom
                 var message = await Flyover(target, httpTimeout);
                 Logger.Success($"Host {target} is alive!");
                 Logger.DisplayFlyoverResponseMessage(message);
-                
+
                 return message;
             }
             catch (HttpRequestException httpRequestException)
@@ -279,18 +314,20 @@ namespace HttpDoom
                 }
                 catch (Exception e)
                 {
-                    if (debug) Logger.Error(e.InnerException == null
-                        ? $"Host {target} is dead: {e.Message}"
-                        : $"Host {target} is dead: {e.InnerException.Message}");
-                    
+                    if (debug)
+                        Logger.Error(e.InnerException == null
+                            ? $"Host {target} is dead: {e.Message}"
+                            : $"Host {target} is dead: {e.InnerException.Message}");
+
                     return null;
                 }
             }
             catch (Exception e)
             {
-                if (debug) Logger.Error(e.InnerException == null
-                    ? $"Host {target} is dead: {e.Message}"
-                    : $"Host {target} is dead: {e.InnerException.Message}");
+                if (debug)
+                    Logger.Error(e.InnerException == null
+                        ? $"Host {target} is dead: {e.Message}"
+                        : $"Host {target} is dead: {e.InnerException.Message}");
 
                 return null;
             }
@@ -311,24 +348,27 @@ namespace HttpDoom
             {
                 clientHandler.Proxy = new WebProxy(proxy);
             }
-            
+
             using var client = new HttpClient(clientHandler)
             {
                 Timeout = TimeSpan.FromMilliseconds(timeout)
             };
 
             ServicePointManager.ServerCertificateValidationCallback += (_, _, _, _) => true;
-            
-            var request = new HttpRequestMessage(HttpMethod.Get, new Uri(target))
+
+            var uri = new Uri(target);
+            var request = new HttpRequestMessage(HttpMethod.Get, uri)
             {
                 Headers =
                 {
-                    {"User-Agent", 
+                    {
+                        "User-Agent",
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
-                        "Chrome/87.0.4280.88 Safari/537.36"}
+                        "Chrome/87.0.4280.88 Safari/537.36"
+                    }
                 }
             };
-            
+
             var response = await client.SendAsync(request);
 
             var unparsedHost = target
@@ -340,14 +380,17 @@ namespace HttpDoom
                 ? 80
                 : int.Parse(unparsedHost[1]);
 
+            var hostEntry = await Dns.GetHostEntryAsync(domain);
+
             return new FlyoverResponseMessage
             {
                 Domain = domain,
+                Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
                 Requested = response.RequestMessage?.RequestUri?.ToString(),
                 Port = port,
                 Headers = response.Headers,
                 Cookies = cookies,
-                StatusCode = (int)response.StatusCode,
+                StatusCode = (int) response.StatusCode,
                 Content = await response.Content.ReadAsStringAsync()
             };
         }
