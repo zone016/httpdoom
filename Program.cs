@@ -389,7 +389,7 @@ namespace HttpDoom
                 Requested = response.RequestMessage?.RequestUri?.ToString(),
                 Port = port,
                 Headers = response.Headers,
-                Cookies = cookies,
+                Cookies = cookies.GetCookies(uri),
                 StatusCode = (int) response.StatusCode,
                 Content = await response.Content.ReadAsStringAsync()
             };
