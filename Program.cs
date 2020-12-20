@@ -89,6 +89,16 @@ namespace HttpDoom
 
             #region Options Assertion
 
+            if (string.IsNullOrEmpty(options.OutputFile))
+            {
+                options.OutputFile = $"{Guid.NewGuid()}.json";
+                
+                if (options.Debug)
+                {
+                    Logger.Informational($"Random output file was generated {options.OutputFile}");
+                }
+            }
+            
             if (File.Exists(options.OutputFile))
             {
                 Logger.Error($"Output file {options.OutputFile} already exist!");
@@ -278,7 +288,7 @@ namespace HttpDoom
                 UseCookies = false,
                 MaxAutomaticRedirections = 5,
                 AllowAutoRedirect = true,
-                ServerCertificateCustomValidationCallback = (message, cert, chain, sslPolicyErrors) => true
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
             
             using var client = new HttpClient(clientHandler)
