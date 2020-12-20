@@ -9,7 +9,7 @@ using System.CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
-
+using System.Net;
 using static System.Console;
 
 using Pastel;
@@ -128,11 +128,20 @@ namespace HttpDoom
                 Environment.Exit(-1);
             }
 
-            if (!string.IsNullOrEmpty(options.Proxy) && !options.Proxy.Contains(":"))
+            if (!string.IsNullOrEmpty(options.Proxy))
             {
-                // TODO: Add best validation to proxy string.
-                Logger.Error($"{options.Proxy} is a invalid proxy string! (Correct is 127.0.0.1:1234)");
-                Environment.Exit(-1);
+                if (!options.Proxy.Contains(":"))
+                {
+                    Logger.Error($"{options.Proxy} is a invalid proxy string! (Correct is 127.0.0.1:1234)");
+                    Environment.Exit(-1);   
+                }
+
+                var values = options.Proxy.Split(":");
+                if (values.Length != 2)
+                {
+                    Logger.Error($"{options.Proxy} is a invalid proxy string! (Correct is 127.0.0.1:1234)");
+                    Environment.Exit(-1);   
+                }
             }
 
             #endregion
@@ -281,7 +290,7 @@ namespace HttpDoom
             }
         }
 
-        private static async Task<FlyoverResponseMessage> Flyover(string target, int timeout)
+        private static async Task<FlyoverResponseMessage> Flyover(string target, int timeout, string proxy = null)
         {
             using var clientHandler = new HttpClientHandler
             {
@@ -290,6 +299,11 @@ namespace HttpDoom
                 AllowAutoRedirect = true,
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
+
+            if (!string.IsNullOrEmpty(proxy))
+            {
+                clientHandler.Proxy = new WebProxy(proxy);
+            }
             
             using var client = new HttpClient(clientHandler)
             {
