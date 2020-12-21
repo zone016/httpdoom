@@ -1,0 +1,30 @@
+name: Development Builds
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.1
+    - name: Releasing for macOS with runtime dependency
+      run: dotnet publish -c Release -r osx-x64 --self-contained true
+    - name: Releasing for Linux
+      run: dotnet publish -c Release -r linux-x64 --self-contained true
+    - name: Releasing for Windows
+      run: dotnet publish -c Release -r win-x64 --self-contained true
+    - uses: actions/checkout@v2
+    - uses: papeloto/action-zip@v1
+      with:
+          files: ./bin/Release/net5.0/
+          dest: ${{ github.workspace }}/result.zip
