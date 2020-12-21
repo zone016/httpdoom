@@ -13,10 +13,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Setup .NET
+    - name: Setup dotnet
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 5.0.1
+        dotnet-version: 5.0.x
     - name: Releasing for macOS with runtime dependency
       run: dotnet publish -c Release -r osx-x64 --self-contained true
     - name: Releasing for Linux
