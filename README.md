@@ -66,7 +66,7 @@ Writing session file...Time:
 
 By default, we create all the necessary directories, and we also randomly choose their names (you can set this up with `-o`, in doubt see `--help`).
 
-Within the main directory, a `general.json` file is created containing all the results in a single file (to facilitate the search or ingestion in another visual tool), which looks like this:
+Within the main directory, a `general.json` file is created containing all the results in a single file (to facilitate the search or ingestion in some visual tool), which looks like this:
 
 ```json
 [
@@ -137,7 +137,7 @@ The project are focused to be a really useful tool.
 - [x] **0x01**: Baking the CLI options very similar to Aquatone;
 - [x] **0x02**: Fix issues with large (5K+) hosts wordlists;
 - [x] **0x03**: Well, this is not "threads" but work like, maybe need a better polishing;
-- [ ] **0x03**: Create the community-driven fingerprint engine to enumerate vulnerabilities on headers and bodies of the HTTP responses;
+- [ ] **0x04**: Create the community-driven fingerprint engine to enumerate vulnerabilities on headers and bodies of the HTTP responses;
 
 
 
