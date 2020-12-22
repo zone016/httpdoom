@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -9,6 +9,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Flurl" Version="3.0.1" />
+      <PackageReference Include="Flurl.Http" Version="3.0.1" />
       <PackageReference Include="Pastel" Version="2.1.0" />
       <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
     </ItemGroup>

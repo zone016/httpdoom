@@ -1,0 +1,6 @@
+﻿google.com
+youtube.com
+facebook.com
+twiter.com
+github.com
+*=*.error-url-example.com

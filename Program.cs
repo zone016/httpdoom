@@ -120,11 +120,11 @@ namespace HttpDoom
                 Environment.Exit(-1);
             }
 
-            if (!File.Exists(options.WordList))
+            if (!Wordlist.IsURL(options.WordList) && !File.Exists(options.WordList))
             {
                 Logger.Error($"Wordlist {options.WordList} don't exist!");
                 Environment.Exit(-1);
-            }
+            }          
 
             if (!options.Ports.Any())
             {
@@ -178,33 +178,17 @@ namespace HttpDoom
 
             #region Wordlist Validation
 
-            var domains = new List<string>();
-            await using var fileStream = new FileStream(options.WordList, FileMode.Open, FileAccess.Read);
-            using var streamReader = new StreamReader(fileStream);
-            while (streamReader.Peek() != -1)
-            {
-                var target = await streamReader.ReadLineAsync();
-                if (string.IsNullOrEmpty(target)) continue;
+            var wordlist = new Wordlist(options.WordList);
+            wordlist.OnError = wle => {
+                if (options.Debug)
+                    Logger.Error(wle.Message);
+            };
 
-                target = target.RemoveSchema();
-
-                while (target.EndsWith("/"))
-                {
-                    target = target.Remove(target.Length - 1);
-                }
-
-                if (Uri.CheckHostName(target) == UriHostNameType.Unknown)
-                {
-                    if (options.Debug)
-                        Logger.Error($"{target} has an invalid format to be a fully qualified domain!");
-                }
-                else
-                {
-                    domains.Add(target);
-                }
-            }
-
-            domains = domains.Distinct().ToList();
+            var domains = (await wordlist.GetAsync())
+                                        .Distinct()
+                                        .Where(x => x.IsValid)
+                                        .Select(x => x.Domain)
+                                        .ToList();
 
             if (domains.Count == 0)
             {
@@ -222,8 +206,7 @@ namespace HttpDoom
             #region Flyover Interactions
 
             var targets = new List<string>();
-            domains
-                .ForEach(d =>
+            domains.ForEach(d =>
                 {
                     options.Ports.ToList()
                         .ForEach(p =>
