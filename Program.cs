@@ -103,7 +103,7 @@ namespace HttpDoom
 
                 if (options.Debug)
                 {
-                    Logger.Informational($"Random output directory was generated, and is" + 
+                    Logger.Informational($"Random output directory was generated, and is " + 
                                          options.OutputDirectory);
                 }
             }
