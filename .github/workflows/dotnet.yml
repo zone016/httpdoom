@@ -17,7 +17,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.x
-    - name: Releasing for macOS with runtime dependency
+    - name: Releasing for macOS
       run: dotnet publish -c Release -r osx-x64 --self-contained true
     - name: Releasing for Linux
       run: dotnet publish -c Release -r linux-x64 --self-contained true
@@ -27,12 +27,11 @@ jobs:
     - uses: papeloto/action-zip@v1
       with:
           files: ./bin/Release/net5.0/
-          dest: ${{ github.workspace }}/result.zip
+          dest: ./result.zip
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         automatic_release_tag: "latest"
         prerelease: true
         title: "Development Build"
-        files: |
-            ${{ github.workspace }}/result.zip
+        files: ./result.zip
