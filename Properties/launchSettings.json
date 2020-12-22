@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "HttpDoom": {
+      "commandName": "Project",
+      "commandLineArgs": "-d --word-list   https://raw.githubusercontent.com/BizarreNULL/httpdoom/main/Example/wordlist.txt",
+      "remoteDebugEnabled": false
+    }
+  }
+}
