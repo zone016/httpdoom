@@ -36,4 +36,7 @@ jobs:
         prerelease: true
         title: "Development Build"
         files: |
-          *.zip
+          ./osx-x64-self-contained.zip
+          ./linux-x64-self-contained.zip
+          ./win-x64-self-contained.zip
+
