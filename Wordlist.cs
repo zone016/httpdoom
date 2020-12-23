@@ -19,7 +19,7 @@ namespace HttpDoom
         /// <param name="origin">Origin local or Web url</param>
         public Wordlist(string origin)
         {
-            Origin = Origin;
+            Origin = origin;
         }
 
         public async Task<IEnumerable<WordlistDomain>> GetAsync()
@@ -124,7 +124,7 @@ namespace HttpDoom
         public static bool IsURL(string value)
         {
             Uri uriResult;
-            return Uri.TryCreate(value, UriKind.Absolute, out uriResult) && uriResult.Scheme == Uri.UriSchemeHttp;
+            return Uri.TryCreate(value, UriKind.Absolute, out uriResult) && uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps;
         }
     }
 
