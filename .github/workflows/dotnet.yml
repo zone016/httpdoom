@@ -27,6 +27,7 @@ jobs:
       run: | 
         dotnet publish -c Release -r win-x64 --self-contained true
         zip -r win-x64-self-contained.zip ./bin/Release/net5.0/win-x64
+        ls -lacs
     - uses: actions/checkout@v2
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
