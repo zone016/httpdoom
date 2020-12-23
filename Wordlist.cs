@@ -9,27 +9,27 @@ namespace HttpDoom
 {
     public sealed class Wordlist
     {
-        public string Path { get; private set; }
+        public string Origin { get; private set; }
 
         public Action<WordlistError> OnError { get; set; }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="path">Path local or Web url</param>
-        public Wordlist(string path)
+        /// <param name="origin">Origin local or Web url</param>
+        public Wordlist(string origin)
         {
-            Path = path;
+            Origin = Origin;
         }
 
         public async Task<IEnumerable<WordlistDomain>> GetAsync()
         {
-            if (IsURL(Path))
+            if (IsURL(Origin))
             {
                 return await GetByWebAsync();
 
             }
-            else if (File.Exists(Path))
+            else if (File.Exists(Origin))
             {
                 return await GeByLocalAsync();
             }
@@ -44,7 +44,7 @@ namespace HttpDoom
             try
             {
                 //Request with Flurl
-                var response = await Path.GetStringAsync();
+                var response = await Origin.GetStringAsync();
 
                 if (!string.IsNullOrEmpty(response))
                 {
@@ -59,7 +59,7 @@ namespace HttpDoom
             }
             catch (Exception)
             {
-                OnError(new WordlistError(WordlistError.Types.FILE_WEB_NOT_FOUND, $"Invalid worlist {Path}"));
+                OnError(new WordlistError(WordlistError.Types.FILE_WEB_NOT_FOUND, $"Invalid worlist {Origin}"));
             }
 
             return default;
@@ -69,13 +69,13 @@ namespace HttpDoom
         {
             try
             {
-                await using var fileStream = new FileStream(Path, FileMode.Open, FileAccess.Read);
+                await using var fileStream = new FileStream(Origin, FileMode.Open, FileAccess.Read);
 
                 return await ProcessFileAsync(fileStream);
             }
             catch (Exception)
             {
-                OnError(new WordlistError(WordlistError.Types.FILE_LOCAL_NOT_FOUND, $"Invalid worlist {Path}"));
+                OnError(new WordlistError(WordlistError.Types.FILE_LOCAL_NOT_FOUND, $"Invalid worlist {Origin}"));
             }
 
             return default;
