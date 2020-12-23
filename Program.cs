@@ -185,12 +185,12 @@ namespace HttpDoom
             };
 
             var domains = (await wordlist.GetAsync())
-                                        .Distinct()
-                                        .Where(x => x.IsValid)
-                                        .Select(x => x.Domain)
-                                        .ToList();
+                                         ?.Distinct()
+                                          .Where(x => x.IsValid)
+                                          .Select(x => x.Domain)
+                                          .ToList();
 
-            if (domains.Count == 0)
+            if (domains == null || domains?.Count == 0)
             {
                 Logger.Error("Your wordlist is useless. Try a new one with actual fully qualified domains!");
                 Environment.Exit(-1);
