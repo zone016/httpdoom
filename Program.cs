@@ -103,7 +103,7 @@ namespace HttpDoom
 
                 if (options.Debug)
                 {
-                    Logger.Informational($"Random output directory was generated, and is " + 
+                    Logger.Informational("Random output directory was generated, and is " + 
                                          options.OutputDirectory);
                 }
             }
@@ -244,7 +244,8 @@ namespace HttpDoom
                         });
                 });
 
-            Logger.Informational($"Added ports, the ({"possible".Pastel(Color.MediumAquamarine)}) " +
+            Logger.Informational($"Added port(s) {string.Join(", ", options.Ports)}. " +
+                                 $"The ({"possible".Pastel(Color.MediumAquamarine)}) " +
                                  $"total of requests is #{targets.Count}");
             
             Logger.Warning($"{"Mind the DoS:".Pastel(Color.Red)} This tool can cause instability " +
