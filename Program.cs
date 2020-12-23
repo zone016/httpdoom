@@ -11,20 +11,23 @@ using System.CommandLine;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
-
+using System.Runtime.InteropServices;
 using static System.Console;
 
 using Pastel;
 
+using OpenQA.Selenium;
+
 using HttpDoom.Records;
 using HttpDoom.Utilities;
+using OpenQA.Selenium.Chrome;
 
 namespace HttpDoom
 {
     internal static class Program
     {
         private static SemaphoreSlim _gate;
-        
+
         private static async Task<int> Main(string[] args)
         {
             CursorVisible = false;
@@ -55,7 +58,7 @@ namespace HttpDoom
                 },
                 new Option<bool>(new[] {"--screenshot", "-s"})
                 {
-                    Description = "Take screenshots from the alive host with Chromium-headless"
+                    Description = "Take screenshots from the alive host with Firefox-headless (default is false)"
                 },
                 new Option<string[]>(new[] {"--headers", "-h"})
                 {
@@ -94,8 +97,8 @@ namespace HttpDoom
             #endregion
 
             commands.Handler = CommandHandler.Create<Options>(async options => await Router(options));
-
             CursorVisible = true;
+           
             return await commands.InvokeAsync(args);
         }
 
@@ -111,7 +114,7 @@ namespace HttpDoom
 
                 if (options.Debug)
                 {
-                    Logger.Informational("Random output directory was generated, and is " + 
+                    Logger.Informational("Random output directory was generated, and is " +
                                          options.OutputDirectory);
                 }
             }
@@ -121,7 +124,7 @@ namespace HttpDoom
                 Directory.CreateDirectory(options.OutputDirectory);
             }
 
-            if (Directory.GetFiles(options.OutputDirectory).Any() || 
+            if (Directory.GetFiles(options.OutputDirectory).Any() ||
                 Directory.GetDirectories(options.OutputDirectory).Any())
             {
                 Logger.Error($"Output directory {options.OutputDirectory} is not empty!");
@@ -183,7 +186,7 @@ namespace HttpDoom
                     Environment.Exit(-1);
                 }
             }
-            
+
             if (options.Threads > Environment.ProcessorCount)
             {
                 Logger.Warning("You may have issues with a larger thread count than your processor!");
@@ -195,6 +198,25 @@ namespace HttpDoom
 
             #endregion
 
+            #region Output Diretory Structure Creation
+
+            var individualOutputDirectory = Path.Combine(options.OutputDirectory, "Individual Results");
+            if (!Directory.Exists(individualOutputDirectory))
+            {
+                Directory.CreateDirectory(individualOutputDirectory);
+            }
+
+            if (options.Screenshot)
+            {
+                var screenshotsDirectory = Path.Combine(options.OutputDirectory, "Screenshots");
+                if (!Directory.Exists(screenshotsDirectory))
+                {
+                    Directory.CreateDirectory(screenshotsDirectory);
+                }
+            }
+            
+            #endregion
+            
             #region Wordlist Validation
 
             var domains = new List<string>();
@@ -258,7 +280,7 @@ namespace HttpDoom
                             else
                             {
                                 targets.Add($"http://{d}:{p}");
-                                targets.Add($"https://{d}:{p}");   
+                                targets.Add($"https://{d}:{p}");
                             }
                         });
                 });
@@ -266,19 +288,19 @@ namespace HttpDoom
             Logger.Informational($"Added port(s) {string.Join(", ", options.Ports)}. " +
                                  $"The ({"possible".Pastel(Color.MediumAquamarine)}) " +
                                  $"total of requests is #{targets.Count}");
-            
+
             Logger.Informational($"Initializing flyover with " +
                                  $"#{ParseHeadersFromOptions(options.Headers).Count()} header(s)...");
-            
+
             Logger.Warning($"{"Mind the DoS:".Pastel(Color.Red)} This tool can cause instability " +
                            "problems on your network!");
-            
+
             Logger.Warning("Initializing CPU-intensive tasks (this can take a while)...");
 
             var stopwatch = Stopwatch.StartNew();
-            
+
             // Starting semaphore for limiting concurrent HTTP requests
-            _gate = new SemaphoreSlim(options.Threads);  
+            _gate = new SemaphoreSlim(options.Threads);
 
             var tasks = targets.Select(target =>
                 Task.Run(() => Trigger(target, options)));
@@ -296,10 +318,10 @@ namespace HttpDoom
             #region flyoverResponseMessages Falidation
 
             flyoverResponseMessages = flyoverResponseMessages
-                    
+
                 .Where(f => f != null)
                 .ToArray();
-            
+
             #endregion
 
             #region Result Persistance
@@ -311,12 +333,9 @@ namespace HttpDoom
                                      $"{options.OutputDirectory.Pastel(Color.MediumAquamarine)}");
 
                 var groupedOutput = Path.Combine(options.OutputDirectory, "general.json");
-                await File.WriteAllTextAsync(groupedOutput, 
+                await File.WriteAllTextAsync(groupedOutput,
                     JsonSerializer.Serialize(flyoverResponseMessages));
 
-                var individualOutputDirectory = Path.Combine(options.OutputDirectory, "Individual Results");
-                Directory.CreateDirectory(individualOutputDirectory);
-                
                 flyoverResponseMessages
                     .ToList()
                     .ForEach(async message =>
@@ -329,11 +348,11 @@ namespace HttpDoom
                                 if (!filename.Contains(c)) return;
                                 filename = filename.Replace(c.ToString(), string.Empty);
                             });
-                        
+
                         var individualOutput = Path.Combine(individualOutputDirectory, $"{filename}.json");
                         await File.WriteAllTextAsync(individualOutput, JsonSerializer.Serialize(message));
                     });
-                
+
                 Logger.Informational("HttpDoom is exiting...");
             }
             else
@@ -351,8 +370,7 @@ namespace HttpDoom
                 if (options.Debug) Logger.Informational($"Requesting {target}...");
 
                 await _gate.WaitAsync();
-                var message = await Flyover(target, ParseHeadersFromOptions(options.Headers), options.HttpTimeout, 
-                    options.Proxy);
+                var message = await Flyover(target, options);
                 Logger.Success($"Requested {message.Requested} is alive!");
                 Logger.DisplayFlyoverResponseMessage(message);
 
@@ -373,13 +391,14 @@ namespace HttpDoom
             }
         }
 
-        private static IEnumerable<KeyValuePair<string, string>> 
+        private static IEnumerable<KeyValuePair<string, string>>
             ParseHeadersFromOptions(IEnumerable<string> possibleHeaders)
-            => possibleHeaders.Select(header => header.Split(":"))
-                    .Where(h => h.Length == 2)
-                    .Select(h => new KeyValuePair<string, string>(h[0], h[1]));
+            => possibleHeaders
+                .Select(header => header.Split(":"))
+                .Where(h => h.Length == 2)
+                .Select(h => new KeyValuePair<string, string>(h[0], h[1]));
 
-        private static async Task<FlyoverResponseMessage> Flyover(string target, IEnumerable<KeyValuePair<string, string>> headers, int timeout, string proxy = null)
+        private static async Task<FlyoverResponseMessage> Flyover(string target, Options options)
         {
             var cookies = new CookieContainer();
             using var clientHandler = new HttpClientHandler
@@ -390,27 +409,27 @@ namespace HttpDoom
                 ServerCertificateCustomValidationCallback = (_, _, _, _) => true
             };
 
-            if (!string.IsNullOrEmpty(proxy))
+            if (!string.IsNullOrEmpty(options.Proxy))
             {
-                clientHandler.Proxy = new WebProxy(proxy);
+                clientHandler.Proxy = new WebProxy(options.Proxy);
             }
 
             using var client = new HttpClient(clientHandler)
             {
-                Timeout = TimeSpan.FromMilliseconds(timeout)
+                Timeout = TimeSpan.FromMilliseconds(options.HttpTimeout)
             };
 
             ServicePointManager.ServerCertificateValidationCallback += (_, _, _, _) => true;
 
             var uri = new Uri(target);
             var request = new HttpRequestMessage(HttpMethod.Get, uri);
-            
-            headers
+
+            ParseHeadersFromOptions(options.Headers)
                 .ToList()
                 .ForEach(h => request.Headers.Add(h.Key, h.Value));
 
             var response = await client.SendAsync(request);
-            
+
             var unparsedHost = target
                 .RemoveSchema()
                 .Split(":");
@@ -425,17 +444,93 @@ namespace HttpDoom
 
             var hostEntry = await Dns.GetHostEntryAsync(domain);
 
-            return new FlyoverResponseMessage
+            if (!options.Screenshot)
             {
-                Domain = domain,
-                Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
-                Requested = response.RequestMessage?.RequestUri?.ToString(),
-                Port = port,
-                Headers = response.Headers,
-                Cookies = cookies.GetCookies(uri),
-                StatusCode = (int) response.StatusCode,
-                Content = await response.Content.ReadAsStringAsync()
-            };
+                return new FlyoverResponseMessage
+                {
+                    Domain = domain,
+                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Requested = response.RequestMessage?.RequestUri?.ToString(),
+                    Port = port,
+                    Headers = response.Headers,
+                    Cookies = cookies.GetCookies(uri),
+                    StatusCode = (int) response.StatusCode,
+                    Content = await response.Content.ReadAsStringAsync()
+                };
+            }
+
+            try
+            {
+                var launcherOptions = new ChromeOptions
+                {
+                    AcceptInsecureCertificates = true
+                };
+
+                launcherOptions.AddArguments(
+                    "--headless",
+                    "--disable-gpu",
+                    "--hide-scrollbars",
+                    "--mute-audio",
+                    "--disable-notifications",
+                    "--no-first-run",
+                    "--disable-crash-reporter",
+                    "--ignore-certificate-errors",
+                    "--incognito",
+                    "--disable-infobars",
+                    "--disable-sync",
+                    "--no-default-browser-check",
+                    "--disable-extensions",
+                    "--silent",
+                    "log-level=3"
+                );
+                    
+
+                if (!string.IsNullOrEmpty(options.Proxy))
+                {
+                    launcherOptions.AddArgument($"--proxy-server={options.Proxy}");
+                }
+
+                var service = ChromeDriverService.CreateDefaultService();
+                service.HideCommandPromptWindow = true;
+                service.SuppressInitialDiagnosticInformation = true; 
+                
+                using var driver = new ChromeDriver(service, launcherOptions);
+                driver.Navigate().GoToUrl(uri);
+
+                var path = Path.Combine(options.OutputDirectory, "Screenshots", $"{Guid.NewGuid()}.png");
+                var screenshot = driver.GetScreenshot();
+
+                screenshot.SaveAsFile(path, ScreenshotImageFormat.Png);
+
+                return new FlyoverResponseMessage
+                {
+                    Domain = domain,
+                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Requested = response.RequestMessage?.RequestUri?.ToString(),
+                    Port = port,
+                    Headers = response.Headers,
+                    Cookies = cookies.GetCookies(uri),
+                    StatusCode = (int) response.StatusCode,
+                    Content = await response.Content.ReadAsStringAsync(),
+                    ScreenshotPath = path
+                };
+            }
+            catch (Exception e)
+            {
+                Logger.Error($"Is no possible to take screenshot from {uri}: {e.Message}");
+
+                return new FlyoverResponseMessage
+                {
+                    Domain = domain,
+                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Requested = response.RequestMessage?.RequestUri?.ToString(),
+                    Port = port,
+                    Headers = response.Headers,
+                    Cookies = cookies.GetCookies(uri),
+                    StatusCode = (int) response.StatusCode,
+                    Content = await response.Content.ReadAsStringAsync()
+                };
+            }
         }
     }
 }
