@@ -32,6 +32,10 @@ The description (`--help`) of the CLI is all you need to know:
 
 ![Output of `--help`](./Images/example.png)
 
+Also, HttpDoom have a _nice_ output:
+
+![Running HttpDoom](./Images/running.png)
+
 
 
 ## But it is fast?
@@ -71,60 +75,72 @@ Within the main directory, a `general.json` file is created containing all the r
 ```json
 [
     {
-        "domain": "youtube.com",
-        "host_addresses": [
-            "2800:3f0:4001:802::200e",
-            "172.217.29.14"
+        "Domain": "google.com",
+        "Addresses": [
+            "2800:3f0:4001:80f::200e",
+            "172.217.173.110"
         ],
-        "requested_uri": "https://youtube.com/",
-        "port": 443,
-        "content": "TRUNCATED",
-        "headers": [
-          // ...
+        "Requested": "http://google.com/",
+        "Port": 80,
+        "Content": "\u003CHTML\u003E\u003CHEAD\u003E\u003Cmeta http-equiv=\u0022content-type\u0022 content=\u0022text/html;charset=utf-8\u0022\u003E\n\u003CTITLE\u003E301 Moved\u003C/TITLE\u003E\u003C/HEAD\u003E\u003CBODY\u003E\n\u003CH1\u003E301 Moved\u003C/H1\u003E\nThe document has moved\n\u003CA HREF=\u0022http://www.google.com/\u0022\u003Ehere\u003C/A\u003E.\r\n\u003C/BODY\u003E\u003C/HTML\u003E\r\n",
+        "ScreenshotPath": "C:\\Users\\REDACTED\\AppData\\Local\\Temp\\31y4sezi.yep\\Screenshots\\c1d50408-bf98-47b8-9787-d348bf17a1c8.png",
+        "Headers": [
             {
-                "Key": "Alt-Svc",
+                "Key": "Location",
                 "Value": [
-                    "h3-29=\u0022:443\u0022; ma=2592000",
-                    "h3-T051=\u0022:443\u0022; ma=2592000",
-                    "h3-Q050=\u0022:443\u0022; ma=2592000",
-                    "h3-Q046=\u0022:443\u0022; ma=2592000",
-                    "h3-Q043=\u0022:443\u0022; ma=2592000",
-                    "quic=\u0022:443\u0022; ma=2592000"
+                    "http://www.google.com/"
+                ]
+            },
+            {
+                "Key": "Date",
+                "Value": [
+                    "Wed, 23 Dec 2020 12:44:51 GMT"
+                ]
+            },
+            {
+                "Key": "Cache-Control",
+                "Value": [
+                    "public, max-age=2592000"
+                ]
+            },
+            {
+                "Key": "Server",
+                "Value": [
+                    "gws"
+                ]
+            },
+            {
+                "Key": "X-XSS-Protection",
+                "Value": [
+                    "0"
+                ]
+            },
+            {
+                "Key": "X-Frame-Options",
+                "Value": [
+                    "SAMEORIGIN"
                 ]
             }
-          // ...
         ],
-        "cookies": [
-            {
-                "Comment": "",
-                "CommentUri": null,
-                "HttpOnly": false,
-                "Discard": false,
-                "Domain": ".youtube.com",
-                "Expired": false,
-                "Expires": "2037-12-31T21:00:00-03:00",
-                "Name": "CONSENT",
-                "Path": "/",
-                "Port": "",
-                "Secure": false,
-                "TimeStamp": "2020-12-20T05:42:27.994275-03:00",
-                "Value": "WP.28e7b4",
-                "Version": 0
-            }
-        ],
-        "status_code": 302
+        "Cookies": [],
+        "StatusCode": 301
     }
 ]
 ```
 
-A directory called *Individual Results* is also created, indexing the results individually, categorically based on the name of the URI used for the request:
+A directory called *Individual Results* is also created, indexing the results individually, categorically based on the name of the URI (and port, if is different from 80 or 443) used for the request, as well the screenshots, if you use HttpDoom with option `-s`:
 
 ```
-/tmp/bjoleu1d.rzq
+.
 ├── general.json
-└── Individual Results
-    ├── exception.blog.json
-    └── exception.blog:8080.json
+├── Individual Results
+│   ├── exception.blog.json
+│   └── google.com.json
+└── Screenshots
+    ├── 658cf47d-0a10-4302-91a0-e5900201dced.png
+    ├── 7ee17334-4936-46f9-b156-f0aa53ce749a.png
+    ├── c1d50408-bf98-47b8-9787-d348bf17a1c8.png
+    └── df37f112-f20d-488b-9153-aa2593654af6.png
 ```
 
 
@@ -137,7 +153,8 @@ The project are focused to be a really useful tool.
 - [x] **0x01**: Baking the CLI options very similar to Aquatone;
 - [x] **0x02**: Fix issues with large (5K+) hosts wordlists;
 - [x] **0x03**: Well, this is not "threads" but work like, maybe need a better polishing;
-- [ ] **0x04**: Create the community-driven fingerprint engine to enumerate vulnerabilities on headers and bodies of the HTTP responses;
+- [x] **0x04** Screenshots because why not;
+- [ ] **0x05**: Create the community-driven fingerprint engine to enumerate vulnerabilities on headers and bodies of the HTTP responses;
 
 
 
