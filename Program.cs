@@ -133,8 +133,28 @@ namespace HttpDoom
 
             if (!File.Exists(options.WordList))
             {
-                Logger.Error($"Wordlist {options.WordList} don't exist!");
-                Environment.Exit(-1);
+                if (Uri.TryCreate(options.WordList, UriKind.Absolute, out _))
+                {
+                    try
+                    {
+                        Logger.Informational($"Downloading wordlist from remote {options.WordList}...");
+                        var path = Path.Combine(Path.GetTempPath(), $"{Path.GetRandomFileName()}.txt");
+                        var content = await new WebClient().DownloadStringTaskAsync(options.WordList);
+                        await File.WriteAllTextAsync(path, content);
+                    
+                        options.WordList = path;
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.Error($"Some error occurred in downloading wordlist from remote: {e.Message}");
+                        Environment.Exit(-1);
+                    }
+                }
+                else
+                {
+                    Logger.Error($"Wordlist {options.WordList} don't exist!");
+                    Environment.Exit(-1);
+                }
             }
 
             if (!options.Ports.Any())
