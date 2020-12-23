@@ -58,7 +58,7 @@ namespace HttpDoom
                 },
                 new Option<bool>(new[] {"--screenshot", "-s"})
                 {
-                    Description = "Take screenshots from the alive host with Firefox-headless (default is false)"
+                    Description = "Take screenshots from the alive host with ChromeDriver (default is false)"
                 },
                 new Option<string[]>(new[] {"--headers", "-h"})
                 {
