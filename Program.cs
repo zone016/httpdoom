@@ -40,7 +40,7 @@ namespace HttpDoom
             Write("to your horizon.");
             SetCursorPosition(0, top + 5);
 
-            WriteLine("   v0.3".Pastel("EE977F"));
+            WriteLine("   v0.4".Pastel("EE977F"));
             WriteLine();
 
             #endregion
@@ -52,6 +52,14 @@ namespace HttpDoom
                 new Option<bool>(new[] {"--debug", "-d"})
                 {
                     Description = "Print debugging information"
+                },
+                new Option<bool>(new[] {"--screenshot", "-s"})
+                {
+                    Description = "Take screenshots from the alive host with Chromium-headless"
+                },
+                new Option<string[]>(new[] {"--headers", "-h"})
+                {
+                    Description = "Set default headers to every request (default is just a random User-Agent)"
                 },
                 new Option<int>(new[] {"--http-timeout", "-t"})
                 {
@@ -164,6 +172,17 @@ namespace HttpDoom
                 Logger.Error("Wait, what about the threads?!");
                 Environment.Exit(-1);
             }
+
+            if (options.Headers.Any())
+            {
+                var headers = ParseHeadersFromOptions(options.Headers);
+                if (!headers.Any())
+                {
+                    Logger.Error("There is any valid headers on your request. At least a User-Agent is " +
+                                 "necessary. (Correct is Key:Value)");
+                    Environment.Exit(-1);
+                }
+            }
             
             if (options.Threads > Environment.ProcessorCount)
             {
@@ -248,6 +267,9 @@ namespace HttpDoom
                                  $"The ({"possible".Pastel(Color.MediumAquamarine)}) " +
                                  $"total of requests is #{targets.Count}");
             
+            Logger.Informational($"Initializing flyover with " +
+                                 $"#{ParseHeadersFromOptions(options.Headers).Count()} header(s)...");
+            
             Logger.Warning($"{"Mind the DoS:".Pastel(Color.Red)} This tool can cause instability " +
                            "problems on your network!");
             
@@ -259,7 +281,7 @@ namespace HttpDoom
             _gate = new SemaphoreSlim(options.Threads);  
 
             var tasks = targets.Select(target =>
-                Task.Run(() => Trigger(target, options.Debug, options.HttpTimeout)));
+                Task.Run(() => Trigger(target, options)));
 
             var flyoverResponseMessages = await Task.WhenAll(tasks)
                 .ConfigureAwait(false);
@@ -274,6 +296,7 @@ namespace HttpDoom
             #region flyoverResponseMessages Falidation
 
             flyoverResponseMessages = flyoverResponseMessages
+                    
                 .Where(f => f != null)
                 .ToArray();
             
@@ -321,14 +344,15 @@ namespace HttpDoom
             #endregion
         }
 
-        private static async Task<FlyoverResponseMessage> Trigger(string target, bool debug, int httpTimeout)
+        private static async Task<FlyoverResponseMessage> Trigger(string target, Options options)
         {
             try
             {
-                if (debug) Logger.Informational($"Requesting {target}...");
+                if (options.Debug) Logger.Informational($"Requesting {target}...");
 
                 await _gate.WaitAsync();
-                var message = await Flyover(target, httpTimeout);
+                var message = await Flyover(target, ParseHeadersFromOptions(options.Headers), options.HttpTimeout, 
+                    options.Proxy);
                 Logger.Success($"Requested {message.Requested} is alive!");
                 Logger.DisplayFlyoverResponseMessage(message);
 
@@ -336,7 +360,7 @@ namespace HttpDoom
             }
             catch (Exception e)
             {
-                if (debug)
+                if (options.Debug)
                     Logger.Error(e.InnerException == null
                         ? $"Host {target} is dead: {e.Message}"
                         : $"Host {target} is dead: {e.InnerException.Message}");
@@ -349,7 +373,13 @@ namespace HttpDoom
             }
         }
 
-        private static async Task<FlyoverResponseMessage> Flyover(string target, int timeout, string proxy = null)
+        private static IEnumerable<KeyValuePair<string, string>> 
+            ParseHeadersFromOptions(IEnumerable<string> possibleHeaders)
+            => possibleHeaders.Select(header => header.Split(":"))
+                    .Where(h => h.Length == 2)
+                    .Select(h => new KeyValuePair<string, string>(h[0], h[1]));
+
+        private static async Task<FlyoverResponseMessage> Flyover(string target, IEnumerable<KeyValuePair<string, string>> headers, int timeout, string proxy = null)
         {
             var cookies = new CookieContainer();
             using var clientHandler = new HttpClientHandler
@@ -373,17 +403,11 @@ namespace HttpDoom
             ServicePointManager.ServerCertificateValidationCallback += (_, _, _, _) => true;
 
             var uri = new Uri(target);
-            var request = new HttpRequestMessage(HttpMethod.Get, uri)
-            {
-                Headers =
-                {
-                    {
-                        "User-Agent",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
-                        "Chrome/87.0.4280.88 Safari/537.36"
-                    }
-                }
-            };
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+            
+            headers
+                .ToList()
+                .ForEach(h => request.Headers.Add(h.Key, h.Value));
 
             var response = await client.SendAsync(request);
             
