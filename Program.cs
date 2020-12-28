@@ -56,6 +56,14 @@ namespace HttpDoom
                 {
                     Description = "Print debugging information"
                 },
+                new Option<bool>(new[] {"--follow-redirect", "-f"})
+                {
+                    Description = "HTTP client follow any automatic redirects (default is false)"
+                },
+                new Option<bool>(new[] {"--max-redirects", "-m"})
+                {
+                    Description = "Max automatic redirect depth when is enable (default is 3)"
+                },
                 new Option<bool>(new[] {"--screenshot", "-s"})
                 {
                     Description = "Take screenshots from the alive host with ChromeDriver (default is false)"
@@ -205,6 +213,12 @@ namespace HttpDoom
                                  "necessary. (Correct is Key:Value)");
                     Environment.Exit(-1);
                 }
+            }
+            
+            if (options.MaxRedirects <= 0)
+            {
+                Logger.Error("Wait, you wanna see redirects or not?!");
+                Environment.Exit(-1);
             }
 
             if (options.Threads > Environment.ProcessorCount)
@@ -425,8 +439,9 @@ namespace HttpDoom
             {
                 UseCookies = true,
                 CookieContainer = cookies,
-                AllowAutoRedirect = false,
-                ServerCertificateCustomValidationCallback = (_, _, _, _) => true
+                AllowAutoRedirect = options.FollowRedirect,
+                ServerCertificateCustomValidationCallback = (_, _, _, _) => true,
+                MaxAutomaticRedirections = options.MaxRedirects
             };
 
             if (!string.IsNullOrEmpty(options.Proxy))

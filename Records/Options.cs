@@ -5,6 +5,8 @@ namespace HttpDoom.Records
     public class Options
     {
         public bool Debug { get; set; } = false;
+        public bool FollowRedirect { get; set; } = false;
+        public int MaxRedirects { get; set; } = 3;
         public bool Screenshot { get; set; } = false;
         public int HttpTimeout { get; set; } = 5000;
         public int Threads { get; set; } = Environment.ProcessorCount;
