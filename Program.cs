@@ -68,6 +68,10 @@ namespace HttpDoom
                 {
                     Description = "Take screenshots from the alive host with ChromeDriver (default is false)"
                 },
+                new Option<bool>(new[] {"--screenshot-resolution", "-r"})
+                {
+                    Description = "Set screenshot resolution (default is 1366x768)"
+                },
                 new Option<string[]>(new[] {"--headers", "-h"})
                 {
                     Description = "Set default headers to every request (default is just a random User-Agent)"
@@ -516,6 +520,7 @@ namespace HttpDoom
                     "--no-default-browser-check",
                     "--disable-extensions",
                     "--silent",
+                    "--window-size=" + options.ScreenshotResolution,
                     "log-level=3"
                 );
                     
