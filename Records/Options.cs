@@ -9,6 +9,7 @@ namespace HttpDoom.Records
         public int MaxRedirects { get; set; } = 3;
         public bool Screenshot { get; set; } = false;
         public string ScreenshotResolution { get; set; } = "1366x768";
+        public bool CaptureFavicon { get; set; } = false;
         public int HttpTimeout { get; set; } = 5000;
         public int Threads { get; set; } = Environment.ProcessorCount;
         public string OutputDirectory { get; set; }

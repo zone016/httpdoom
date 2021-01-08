@@ -17,10 +17,10 @@ using static System.Console;
 using Pastel;
 
 using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 using HttpDoom.Records;
 using HttpDoom.Utilities;
-using OpenQA.Selenium.Chrome;
 
 namespace HttpDoom
 {
@@ -71,6 +71,10 @@ namespace HttpDoom
                 new Option<bool>(new[] {"--screenshot-resolution", "-r"})
                 {
                     Description = "Set screenshot resolution (default is 1366x768)"
+                },
+                new Option<bool>(new[] {"--capture-favicon", "-f"})
+                {
+                    Description = "Download the application favicon"
                 },
                 new Option<string[]>(new[] {"--headers", "-h"})
                 {

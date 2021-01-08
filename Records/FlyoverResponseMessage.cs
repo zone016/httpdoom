@@ -11,6 +11,7 @@ namespace HttpDoom.Records
         public int Port { get; set; }
         public string Content { get; set; }
         public string ScreenshotPath { get; set; }
+        public string FaviconPath { get; set; }
         public HttpResponseHeaders Headers { get; set; }
         public CookieCollection Cookies { get; set; }
         public int StatusCode { get; set; }
