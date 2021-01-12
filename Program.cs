@@ -72,7 +72,7 @@ namespace HttpDoom
                 {
                     Description = "Set screenshot resolution (default is 1366x768)"
                 },
-                new Option<bool>(new[] {"--capture-favicon", "-f"})
+                new Option<bool>(new[] {"--capture-favicon", "-F"})
                 {
                     Description = "Download the application favicon"
                 },
