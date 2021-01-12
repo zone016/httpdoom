@@ -26,6 +26,19 @@ With these ideas in mind, HttpDoom is born.
 
 
 
+## Installing
+
+In order to install HttpDoom, in the current release cycle, due to not have a runtime-independent build at this time (**only *devel* builds are available**), you **must have .NET5 runtime (or SDK) - AKA `dotnet` - installed in your host**, with the .NET toolchain available in your Linux or macOS (automatic installation for Windows is not supported at this time, your PR to installation script is welcome. WSL works fine):
+
+```sh
+$ mkdir $HOME/Tools
+$ echo "PATH=$HOME/Tools:$PATH" >> .zshrc # or what is your current shell profile
+```
+
+And at least, executing the script `./installer.sh` in the base directory of this *repo* (you can download in releases, or `git clone`).
+
+
+
 ## How this works?
 
 The description (`--help`) of the CLI is all you need to know:
