@@ -1,21 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
-        <PackageVersion>0.2.0</PackageVersion>
-        <AssemblyVersion>0.2.0</AssemblyVersion>
-        <Nullable>disable</Nullable>
-    </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <PackageVersion>0.4.0</PackageVersion>
+    <AssemblyVersion>0.4.0</AssemblyVersion>
+    <Nullable>disable</Nullable>
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>httpdoom</ToolCommandName>
+    <PackageOutputPath>./nupkg</PackageOutputPath>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Pastel" Version="2.1.0" />
-      <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Pastel" Version="2.1.0" />
+    <PackageReference Include="Selenium.WebDriver" Version="3.141.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <None Remove=".gitignore" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Remove=".gitignore" />
+  </ItemGroup>
 
 </Project>
