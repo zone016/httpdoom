@@ -1,4 +1,9 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
+
+if ! command -v dotnet &> /dev/null; then
+    echo "Please, install dotnet!!"
+    exit 1
+fi
 
 dotnet tool uninstall --tool-path $HOME/Tools httpdoom 2>/dev/null
 
