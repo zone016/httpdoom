@@ -485,14 +485,22 @@ namespace HttpDoom
                 _ => int.Parse(unparsedHost[1])
             };
 
-            var hostEntry = await Dns.GetHostEntryAsync(domain);
+            IPHostEntry hostEntry = null;
+            try
+            {
+                hostEntry = await Dns.GetHostEntryAsync(domain);
+            }
+            catch
+            {
+                // ignored
+            }
 
             if (!options.Screenshot)
             {
                 return new FlyoverResponseMessage
                 {
                     Domain = domain,
-                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Addresses = hostEntry?.AddressList.Select(a => a.ToString()).ToArray(),
                     Requested = response.RequestMessage?.RequestUri?.ToString(),
                     Port = port,
                     Headers = response.Headers,
@@ -549,7 +557,7 @@ namespace HttpDoom
                 return new FlyoverResponseMessage
                 {
                     Domain = domain,
-                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Addresses = hostEntry?.AddressList.Select(a => a.ToString()).ToArray(),
                     Requested = response.RequestMessage?.RequestUri?.ToString(),
                     Port = port,
                     Headers = response.Headers,
@@ -566,7 +574,7 @@ namespace HttpDoom
                 return new FlyoverResponseMessage
                 {
                     Domain = domain,
-                    Addresses = hostEntry.AddressList.Select(a => a.ToString()).ToArray(),
+                    Addresses = hostEntry?.AddressList.Select(a => a.ToString()).ToArray(),
                     Requested = response.RequestMessage?.RequestUri?.ToString(),
                     Port = port,
                     Headers = response.Headers,
