@@ -118,6 +118,31 @@ namespace HttpDoom
             return await commands.InvokeAsync(args);
         }
 
+        private static async Task<string> DownloadFaviconAsync(bool option, string address, string path)
+        {
+            if (!option || string.IsNullOrEmpty(address))
+            {
+                return null;
+            }
+            
+            try
+            {
+                var faviconPath = Path.Combine(path, Guid.NewGuid() + ".ico");
+                
+                address += "/favicon.ico";
+                var favicon = await new WebClient().DownloadDataTaskAsync(address);
+                if (!favicon.Any()) return null;
+
+                await File.WriteAllBytesAsync(faviconPath, favicon);
+                
+                return faviconPath;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static async Task Router(Options options)
         {
             if (options.Debug) Logger.Informational("Validating options...");
@@ -257,6 +282,15 @@ namespace HttpDoom
                 }
             }
             
+            if (options.CaptureFavicon)
+            {
+                var faviconDirectory = Path.Combine(options.OutputDirectory, "Favicons");
+                if (!Directory.Exists(faviconDirectory))
+                {
+                    Directory.CreateDirectory(faviconDirectory);
+                }
+            }
+            
             #endregion
             
             #region Wordlist Validation
@@ -360,7 +394,6 @@ namespace HttpDoom
             #region flyoverResponseMessages Falidation
 
             flyoverResponseMessages = flyoverResponseMessages
-
                 .Where(f => f != null)
                 .ToArray();
 
@@ -421,9 +454,11 @@ namespace HttpDoom
             catch (Exception e)
             {
                 if (options.Debug)
+                {
                     Logger.Error(e.InnerException == null
                         ? $"Host {target} is dead: {e.Message}"
                         : $"Host {target} is dead: {e.InnerException.Message}");
+                }
 
                 return null;
             }
@@ -506,7 +541,9 @@ namespace HttpDoom
                     Headers = response.Headers,
                     Cookies = cookies.GetCookies(uri),
                     StatusCode = (int) response.StatusCode,
-                    Content = await response.Content.ReadAsStringAsync()
+                    Content = await response.Content.ReadAsStringAsync(),
+                    FaviconPath = await DownloadFaviconAsync(options.CaptureFavicon, uri.ToString(), 
+                        Path.Combine(options.OutputDirectory, "Favicons"))
                 };
             }
 
@@ -564,7 +601,9 @@ namespace HttpDoom
                     Cookies = cookies.GetCookies(uri),
                     StatusCode = (int) response.StatusCode,
                     Content = await response.Content.ReadAsStringAsync(),
-                    ScreenshotPath = path
+                    ScreenshotPath = path,
+                    FaviconPath = await DownloadFaviconAsync(options.CaptureFavicon, uri.ToString(), 
+                        Path.Combine(options.OutputDirectory, "Favicons"))
                 };
             }
             catch (Exception e)
