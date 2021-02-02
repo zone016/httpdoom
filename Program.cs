@@ -339,19 +339,8 @@ namespace HttpDoom
                     options.Ports.ToList()
                         .ForEach(p =>
                         {
-                            if (p == 80)
-                            {
-                                targets.Add($"http://{d}");
-                            }
-                            else if (p == 443)
-                            {
-                                targets.Add($"https://{d}");
-                            }
-                            else
-                            {
-                                targets.Add($"http://{d}:{p}");
-                                targets.Add($"https://{d}:{p}");
-                            }
+                            targets.Add($"http://{d}:{p}");
+                            targets.Add($"https://{d}:{p}");
                         });
                 });
 
@@ -404,7 +393,9 @@ namespace HttpDoom
                     .ToList()
                     .ForEach(async message =>
                     {
-                        var filename = message.Requested.RemoveSchema();
+                        var requested = new Uri(message.Requested);
+                        var filename = $"{requested.Scheme}:{requested.Host}:{requested.Port}";
+                        
                         Path.GetInvalidFileNameChars()
                             .ToList()
                             .ForEach(c =>
@@ -502,12 +493,13 @@ namespace HttpDoom
                 .Split(":");
 
             var domain = unparsedHost[0];
-            var port = unparsedHost.Length switch
-            {
-                1 when uri.Scheme == "https" => 443,
-                1 when uri.Scheme == "http" => 80,
-                _ => int.Parse(unparsedHost[1])
-            };
+            // var port = unparsedHost.Length switch
+            // {
+            //     1 when uri.Scheme == "https" => 443,
+            //     1 when uri.Scheme == "http" => 80,
+            //     _ => int.Parse(unparsedHost[1])
+            // };
+            var port = int.Parse(unparsedHost[1]);
 
             IPHostEntry hostEntry = null;
             try
