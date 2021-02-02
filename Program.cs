@@ -15,6 +15,7 @@ using static System.Console;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 
 using HttpDoom.Records;
 using HttpDoom.Utilities;
@@ -484,7 +485,7 @@ namespace HttpDoom
             {
                 Timeout = TimeSpan.FromMilliseconds(options.HttpTimeout)
             };
-
+            
             ServicePointManager.ServerCertificateValidationCallback += (_, _, _, _) => true;
 
             var uri = new Uri(target);
@@ -560,7 +561,7 @@ namespace HttpDoom
                     "--window-size=" + options.ScreenshotResolution,
                     "log-level=3"
                 );
-                    
+                launcherOptions.AddArguments(CapabilityType.AcceptInsecureCertificates, "true");
 
                 if (!string.IsNullOrEmpty(options.Proxy))
                 {
