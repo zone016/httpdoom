@@ -42,17 +42,49 @@ The installer script also updates (removing the current instalation) new release
 
 The description (`--help`) of the CLI is all you need to know:
 
-![Output of `--help`](./Images/example.png)
+```
+HttpDoom:
+  HttpDoom is a tool for response-based inspection of websites across a large
+  surface.
+  amount of hosts for quickly gaining an overview of HTTP-based attack
 
-Also, HttpDoom have a _nice_ output:
+Usage:
+  HttpDoom [options]
 
-![Running HttpDoom](./Images/running.png)
+Options:
+  -d, --debug                             Print debugging information
+  -f, --follow-redirect                   HTTP client follow any automatic
+                                          redirects (default is false)
+  -m, --max-redirects                     Max automatic redirect depth when is
+                                          enable (default is 3)
+  -s, --screenshot                        Take screenshots from the alive host
+                                          with ChromeDriver (default is false)
+  -r, --screenshot-resolution             Set screenshot resolution (default
+                                          is 1366x768)
+  -F, --capture-favicon                   Download the application favicon
+  -h, --headers <headers>                 Set default headers to every request
+                                          User-Agent)
+                                          (default is just a random
+  -t, --http-timeout <http-timeout>       Timeout in milliseconds for HTTP
+                                          requests (default is 5000)
+  -T, --threads <threads>                 Number of concurrent threads
+                                          (default is 20)
+  -o, --output-directory                  Path to save the output directory
+  <output-directory>
+  -p, --ports <ports>                     Set of ports to check (default is
+                                          80, 443, 8080 and 8433)
+  -P, --proxy <proxy>                     Proxy to use for HTTP requests
+  -w, --word-list <word-list>             List of hosts to flyover against
+  (REQUIRED)
+  --version                               Show version information
+  -?, -h, --help                          Show help and usage information
+```
 
 
 
 ## But it is fast?
 
-Let's take a look on the result of a flyover agains 5000 hosts on default HttpDoom ports (80, 443, 8080 and 8433) with 2 threads (provided by a generic Amazon EC2 instance) agains the same settings on Aquatone 1.7.0:
+Let's take a look on the result of a flyover agains 5000 hosts on default HttpDoom ports (80, 443, 8080 and 8433), running in the very first working release, with 2 threads (provided by a generic Amazon EC2 instance) agains the same settings on Aquatone 1.7.0:
 
 HttpDoom:
 
@@ -89,24 +121,25 @@ Within the main directory, a `general.json` file is created containing all the r
     {
         "Domain": "google.com",
         "Addresses": [
-            "2800:3f0:4001:80f::200e",
-            "172.217.173.110"
+            "2800:3f0:4001:81a::200e",
+            "172.217.28.14"
         ],
-        "Requested": "http://google.com/",
-        "Port": 80,
-        "Content": "\u003CHTML\u003E\u003CHEAD\u003E\u003Cmeta http-equiv=\u0022content-type\u0022 content=\u0022text/html;charset=utf-8\u0022\u003E\n\u003CTITLE\u003E301 Moved\u003C/TITLE\u003E\u003C/HEAD\u003E\u003CBODY\u003E\n\u003CH1\u003E301 Moved\u003C/H1\u003E\nThe document has moved\n\u003CA HREF=\u0022http://www.google.com/\u0022\u003Ehere\u003C/A\u003E.\r\n\u003C/BODY\u003E\u003C/HTML\u003E\r\n",
-        "ScreenshotPath": "C:\\Users\\REDACTED\\AppData\\Local\\Temp\\31y4sezi.yep\\Screenshots\\c1d50408-bf98-47b8-9787-d348bf17a1c8.png",
+        "Requested": "https://google.com/",
+        "Port": 443,
+        "Content": "\u003CHTML\u003E\u003CHEAD\u003E\u003Cmeta http-equiv=\u0022content-type\u0022 content=\u0022text/html;charset=utf-8\u0022\u003E\n\u003CTITLE\u003E301 Moved\u003C/TITLE\u003E\u003C/HEAD\u003E\u003CBODY\u003E\n\u003CH1\u003E301 Moved\u003C/H1\u003E\nThe document has moved\n\u003CA HREF=\u0022https://www.google.com/\u0022\u003Ehere\u003C/A\u003E.\r\n\u003C/BODY\u003E\u003C/HTML\u003E\r\n",
+        "ScreenshotPath": "C:\\Users\\REDACTED\\AppData\\Local\\Temp\\c14obxml.kfy\\Screenshots\\0086aea9-c4d4-4bbf-89d8-728e5d2ff184.png",
+        "FaviconPath": "C:\\Users\\REDACTED\\AppData\\Local\\Temp\\c14obxml.kfy\\Favicons\\172d671c-636d-443b-b5b4-30ed6e10b8aa.ico",
         "Headers": [
             {
                 "Key": "Location",
                 "Value": [
-                    "http://www.google.com/"
+                    "https://www.google.com/"
                 ]
             },
             {
                 "Key": "Date",
                 "Value": [
-                    "Wed, 23 Dec 2020 12:44:51 GMT"
+                    "Tue, 02 Feb 2021 15:59:46 GMT"
                 ]
             },
             {
@@ -132,30 +165,43 @@ Within the main directory, a `general.json` file is created containing all the r
                 "Value": [
                     "SAMEORIGIN"
                 ]
+            },
+            {
+                "Key": "Alt-Svc",
+                "Value": [
+                    "h3-29=\u0022:443\u0022; ma=2592000",
+                    "h3-T051=\u0022:443\u0022; ma=2592000",
+                    "h3-Q050=\u0022:443\u0022; ma=2592000",
+                    "h3-Q046=\u0022:443\u0022; ma=2592000",
+                    "h3-Q043=\u0022:443\u0022; ma=2592000",
+                    "quic=\u0022:443\u0022; ma=2592000"
+                ]
             }
         ],
         "Cookies": [],
         "StatusCode": 301
-    }
+    },
+    // ...
 ]
 ```
 
-A directory called *Individual Results* is also created, indexing the results individually, categorically based on the name of the URI (and port, if is different from 80 or 443) used for the request, as well the screenshots, if you use HttpDoom with option `-s`:
+A directory called *Individual Results* is also created, indexing the results individually, categorically based on the name of the URI used for the request, as well the screenshots, if you use HttpDoom with option `-s` and favicons, if the site has one, and if you use HttpDoom with option `-F`:
 
 ```
 .
-├── general.json
+├── Favicons
+│   ├── 31be8e61-d90b-4b40-bcef-640fb31588e7.ico
+│   └── 4e097b93-12f2-4f20-9582-547cc6d20312.ico
 ├── Individual Results
-│   ├── exception.blog.json
-│   └── google.com.json
-└── Screenshots
-    ├── 658cf47d-0a10-4302-91a0-e5900201dced.png
-    ├── 7ee17334-4936-46f9-b156-f0aa53ce749a.png
-    ├── c1d50408-bf98-47b8-9787-d348bf17a1c8.png
-    └── df37f112-f20d-488b-9153-aa2593654af6.png
+│   ├── http:google.com:80.json
+│   └── https:google.com:443.json
+├── Screenshots
+│   ├── 1d395ce1-b329-4379-8d9e-2868ed41e67d.png
+│   └── a9f90f23-4d5c-4f13-ba3e-5d8f88aa3926.png
+└── general.json
 ```
 
-
+> **Note**: The pattern of Individual Results files is `scheme:address:port`.But `:` can be an invalid character depending on what operational system you use HttpDoom. For deeper ACK, check the documentation of `Path.GetInvalidFileNameChars()` in MSDN.
 
 ## Roadmap
 
