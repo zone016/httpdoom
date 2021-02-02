@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Linq;
-using System.Drawing;
 using System.Net.Http;
 using System.Threading;
 using System.Text.Json;
@@ -13,8 +12,6 @@ using System.Collections.Generic;
 using System.CommandLine.Invocation;
 
 using static System.Console;
-
-using Pastel;
 
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
@@ -33,17 +30,13 @@ namespace HttpDoom
             CursorVisible = false;
 
             #region Application Banner
-
-            var (left, top) = GetCursorPosition();
-            WriteLine(string.Join(string.Empty, Banner.Hello
-                .Select(s => s.ToString().Pastel("EE977F").PastelBg("FFFFC5"))));
-            SetCursorPosition(left + 12, top + 2);
-            Write("HttpDoom, flyover");
-            SetCursorPosition(left + 12, top + 3);
-            Write("to your horizon.");
-            SetCursorPosition(0, top + 5);
-
-            WriteLine("   v0.4".Pastel("EE977F"));
+            
+            WriteLine();
+            WriteLine("+-----------------------------------+");
+            WriteLine("| HttpDoom, flyover to your horizon |");
+            WriteLine("+-----------------------------------+");
+            WriteLine("|  github.com/BizarreNULL/httpdoom  |");
+            WriteLine("+-----------------------------------+");
             WriteLine();
 
             #endregion
@@ -362,14 +355,10 @@ namespace HttpDoom
                 });
 
             Logger.Informational($"Added port(s) {string.Join(", ", options.Ports)}. " +
-                                 $"The ({"possible".Pastel(Color.MediumAquamarine)}) " +
-                                 $"total of requests is #{targets.Count}");
+                                 $"The (possible) total of requests is #{targets.Count}");
 
             Logger.Informational($"Initializing flyover with " +
                                  $"#{ParseHeadersFromOptions(options.Headers).Count()} header(s)...");
-
-            Logger.Warning($"{"Mind the DoS:".Pastel(Color.Red)} This tool can cause instability " +
-                           "problems on your network!");
 
             Logger.Warning("Initializing CPU-intensive tasks (this can take a while)...");
 
@@ -404,8 +393,7 @@ namespace HttpDoom
             if (flyoverResponseMessages.Length != 0)
             {
                 Logger.Success($"Got a total of #{flyoverResponseMessages.Length} alive hosts!");
-                Logger.Informational($"Indexing results in " +
-                                     $"{options.OutputDirectory.Pastel(Color.MediumAquamarine)}");
+                Logger.Informational($"Indexing results in {options.OutputDirectory}");
 
                 var groupedOutput = Path.Combine(options.OutputDirectory, "general.json");
                 await File.WriteAllTextAsync(groupedOutput,
