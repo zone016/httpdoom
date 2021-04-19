@@ -18,16 +18,15 @@ jobs:
     - name: Releasing for macOS
       run: | 
         dotnet publish -c Release -r osx-x64 --self-contained true
-        zip -r osx-x64-self-contained.zip ./bin/Release/net5.0/osx-x64
+        zip -r ./osx-x64-self-contained.zip ./bin/Release/net5.0/osx-x64
     - name: Releasing for Linux
       run: |
         dotnet publish -c Release -r linux-x64 --self-contained true
-        zip -r linux-x64-self-contained.zip ./bin/Release/net5.0/linux-x64
+        zip -r ./linux-x64-self-contained.zip ./bin/Release/net5.0/linux-x64
     - name: Releasing for Windows
       run: | 
         dotnet publish -c Release -r win-x64 --self-contained true
-        zip -r win-x64-self-contained.zip ./bin/Release/net5.0/win-x64
-        ls -lacs
+        zip -r ./win-x64-self-contained.zip ./bin/Release/net5.0/win-x64
     - uses: actions/checkout@v2
     - uses: "marvinpinto/action-automatic-releases@latest"
       with:
@@ -35,5 +34,4 @@ jobs:
         automatic_release_tag: "latest"
         prerelease: true
         title: "Development Build"
-        files: |
-          *.zip
+        files: "*.zip"
