@@ -8,13 +8,13 @@ if ! command -v dotnet &> /dev/null; then
 fi
 
 if [ ! -d "$DESTINATION" ]; then
-    mkdir $DESTINATION
+    mkdir "$DESTINATION"
 else
-    dotnet tool uninstall --tool-path $DESTINATION httpdoom 2>/dev/null
+    dotnet tool uninstall --tool-path "$DESTINATION" httpdoom 2>/dev/null
 fi
 
 dotnet pack
-dotnet tool install --tool-path $DESTINATION --add-source ./nupkg httpdoom
+dotnet tool install --tool-path "$DESTINATION" --add-source ./nupkg httpdoom
 
 echo
 echo "Add $DESTINATION to your current profile to access the binary globaly"
