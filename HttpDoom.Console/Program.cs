@@ -13,6 +13,7 @@ using static System.Console;
 
 using HttpDoom.Core;
 using HttpDoom.Core.Records;
+using OpenQA.Selenium.DevTools;
 
 namespace HttpDoom.Console
 {
@@ -44,7 +45,16 @@ namespace HttpDoom.Console
                 {
                     Description = "Headers to be used in every request"
                 },
-                new Option<string[]>(new[] {"--ports", "-p"})
+                new Option<List<int>>(new[] {"--ports", "-p"}, parseArgument: result => result.Tokens[0]
+                    .Value
+                    .Trim()
+                    .Replace(" ", string.Empty)
+                    .Split(",")
+                    .Distinct()
+                    .Where(s => int.TryParse(s, out _))
+                    .Select(int.Parse)
+                    .Where(p => p is >= 1 and <= 65535)
+                    .ToList())
                 {
                     Description = "Default ports for testing (default is 80, 443)."
                 },
