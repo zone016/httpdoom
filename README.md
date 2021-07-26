@@ -20,7 +20,18 @@
 
 ## Installing
 
-We are currently working on a new installer for `HttpDoom` and nightly builds available at every commit.
+You must have `dotnet` SDK at version 6+:
+
+```sh
+$ dotnet pack -c Release -o nupkg
+$ dotnet tool install --global --add-source .\nupkg\ httpdoom.console
+```
+
+Uninstalling:
+
+```sh
+$ dotnet tool uninstall -g httpdoom.console
+```
 
 
 
