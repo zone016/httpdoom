@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace HttpDoom.Core.Records
+namespace HttpDoom.Shared.Records
 {
     public record Options(
         List<string> Headers,

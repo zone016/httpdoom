@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Collections.Generic;
 
-namespace HttpDoom.Core.Records
+namespace HttpDoom.Shared.Records
 {
-    public record Response
+    public record HttpDoomResponse
     {
         public HttpResponseHeaders ResponseHeaders { get; set; }
         public HttpRequestHeaders RequestHeaders { get; set; }

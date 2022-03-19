@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpDoom.Console", "HttpDoom.Console\HttpDoom.Console.csproj", "{B36C0390-CC73-4A1A-AC45-90AB1315B6D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpDoom.Core", "HttpDoom.Core\HttpDoom.Core.csproj", "{F63749C3-80B0-4248-82E8-A674828DF276}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HttpDoom.Shared", "HttpDoom.Shared\HttpDoom.Shared.csproj", "{F63749C3-80B0-4248-82E8-A674828DF276}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

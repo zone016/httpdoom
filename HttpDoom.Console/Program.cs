@@ -9,18 +9,17 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.CommandLine.Invocation;
 
-using static System.Console;
+using HttpDoom.Shared;
+using HttpDoom.Shared.Records;
 
-using HttpDoom.Core;
-using HttpDoom.Core.Records;
-using OpenQA.Selenium.DevTools;
+using static System.Console;
 
 namespace HttpDoom.Console
 {
     internal static class Program
     {
         private static SemaphoreSlim _gate;
-        private static readonly List<Response> Responses = new();
+        private static readonly List<HttpDoomResponse> Responses = new();
 
         private static async Task<int> Main(string[] args)
         {
@@ -260,7 +259,7 @@ namespace HttpDoom.Console
             stopwatch.Stop();
             WriteLine();
 
-            List<Response> synchronizedResponses;
+            List<HttpDoomResponse> synchronizedResponses;
             lock (Responses)
             {
                 synchronizedResponses = Responses;
@@ -278,13 +277,14 @@ namespace HttpDoom.Console
                     var individualOutputDir = Path.Combine(options.Output, "Responses");
                     Directory.CreateDirectory(individualOutputDir);
 
-                    synchronizedResponses.ForEach(async r =>
+                    async void Action(HttpDoomResponse r)
                     {
-                        var outputFile = Path.Combine(individualOutputDir,
-                            $"{r.OriginUri.Host}+{r.OriginUri.Port}.json");
+                        var outputFile = Path.Combine(individualOutputDir, $"{r.OriginUri.Host}+{r.OriginUri.Port}.json");
                         var individualContent = JsonSerializer.Serialize(r);
                         await File.WriteAllTextAsync(outputFile, individualContent);
-                    });
+                    }
+
+                    synchronizedResponses.ForEach(Action);
 
                     var compactPath = Path.Combine(options.Output, "responses.json");
                     var content = JsonSerializer.Serialize(synchronizedResponses);
@@ -362,7 +362,7 @@ namespace HttpDoom.Console
             ResetColor();
         }
 
-        public static void LogDetails(Response response)
+        public static void LogDetails(HttpDoomResponse response)
         {
             ForegroundColor = ConsoleColor.DarkBlue;
             WriteLine(response.IsSuccessStatusCode ? " + Got a good response" : " + Got a bad response");

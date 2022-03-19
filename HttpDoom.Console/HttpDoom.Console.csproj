@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\HttpDoom.Core\HttpDoom.Core.csproj" />
+    <ProjectReference Include="..\HttpDoom.Shared\HttpDoom.Shared.csproj" />
   </ItemGroup>
 
 </Project>

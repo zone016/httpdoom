@@ -1,21 +1,18 @@
 ﻿using System;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Diagnostics.CodeAnalysis;
-
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading.Tasks;
+using HttpDoom.Shared.Records;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 
-using HttpDoom.Core.Records;
-using Response = HttpDoom.Core.Records.Response;
-
-namespace HttpDoom.Core
+namespace HttpDoom.Shared
 {
       public class Flyover : IDisposable
     {
@@ -61,7 +58,7 @@ namespace HttpDoom.Core
             _options = options;
         }
 
-        public async Task<Response> HitAsync(Uri target)
+        public async Task<HttpDoomResponse> HitAsync(Uri target)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, target);
             if (_headers.Any())
@@ -83,7 +80,7 @@ namespace HttpDoom.Core
 
             var content = await response.Content.ReadAsStringAsync();
             
-            var model = new Response
+            var model = new HttpDoomResponse
             {
                 Content = content,
                 ContentSha256Sum = Sha256Sum(content),
