@@ -1,36 +1,16 @@
-<p align="center">
-<a href="https://github.com/BizarreNULL/httpdoom/">
-  <img src="./Images/logo.png" width="300" />
-</a>
-</p>
-<h1 align="center">
-  <code>HttpDoom</code> - <b>HTTP Attack surface analyser</b>
-</h1>
-
-<p align="center">
-  Validate large HTTP-based attack surfaces in a very fast and reliable way. Inspired by <a href="https://github.com/michenriksen/aquatone">Aquatone</a>.
-  <br/><br/>
-  <a href="http://www.wtfpl.net/txt/copying/">
-    <img alt="WTFPL License" src="https://img.shields.io/github/license/BizarreNULL/shell-robot" />
-  </a>
-  <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/BizarreNULL/httpdoom">
-</p>
-
-
-
-## Installing
+# Installing
 
 You must have `dotnet` SDK at version 6+:
 
 ```sh
-$ dotnet pack -c Release -o nupkg
-$ dotnet tool install --global --add-source .\nupkg\ httpdoom.console
+dotnet pack -c Release -o nupkg
+dotnet tool install --global --add-source .\nupkg\ httpdoom.console
 ```
 
 Uninstalling:
 
 ```sh
-$ dotnet tool uninstall -g httpdoom.console
+dotnet tool uninstall -g httpdoom.console
 ```
 
 
@@ -65,8 +45,6 @@ Options:
   -?, -h, --help                                        Show help and usage information
 ```
 
-
-
 ## Licenses
 
-[HttpDoom](https://github.com/BizarreNULL/httpdoom) project icons made by [Freepik](www.flaticon.com/authors/freepik) from [Flaticon](https://www.flaticon.com/). The source code is licensed under [WTFPL](http://www.wtfpl.net/).
+[HttpDoom](https://github.com/zone016/httpdoom) project icons made by [Freepik](www.flaticon.com/authors/freepik) from [Flaticon](https://www.flaticon.com/). The source code is licensed under [WTFPL](http://www.wtfpl.net/).
